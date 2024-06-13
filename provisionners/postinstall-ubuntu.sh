@@ -3,16 +3,11 @@
 # Stop services for cleanup
 sudo service rsyslog stop
 
-if [ -n "$(command -v yum)" ]; then
-    sudo yum -y update
-    sudo yum clean all
-fi
-if [ -n "$(command -v apt-get)" ]; then
-    sudo apt-get update
-    sudo apt-get -y dist-upgrade
-    sudo apt-get -y --purge autoremove
-    sudo apt-get -y clean
-fi
+# Update template
+sudo apt-get update
+sudo apt-get -y dist-upgrade
+sudo apt-get -y --purge autoremove
+sudo apt-get -y clean
 
 #clear audit logs
 if [ -f /var/log/wtmp ]; then
@@ -37,7 +32,7 @@ fi
 
 #cleanup shell history
 sudo cat /dev/null > ~/.bash_history && history -c
-sudo history -w
+history -w
 
 #cleanup journald
 sudo journalctl --rotate
@@ -46,5 +41,9 @@ sudo journalctl --vacuum-time=1s
 sudo sed -i 's|nocloud-net;seedfrom=http://.*/||' /etc/default/grub
 sudo sed -i 's/autoinstall//g' /etc/default/grub
 sudo update-grub
-sudo cloud-init clean --logs
+sudo rm -f /etc/netplan/00-installer-config.yaml
 
+# Configure cloud-init datasources :
+echo "datasource_list: [ConfigDrive, NoCloud]" | sudo tee -a /etc/cloud/cloud.cfg.d/99-pve.cfg
+sudo rm -f /etc/cloud/cloud.cfg.d/subiquity-disable-cloudinit-networking.cfg
+sudo cloud-init clean --logs

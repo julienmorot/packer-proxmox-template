@@ -36,18 +36,19 @@ source "proxmox-iso" "tpl-ubuntu-2204" {
   cores                = 2
   memory               = 2048
 
-  bios                    = "ovmf"
+  bios                    = "seabios"
   qemu_agent              = true
   cloud_init              = true
   cloud_init_storage_pool = "local"
+  unmount_iso             = true
 
   vga {
     type = "virtio"
   }
 
-  scsi_controller = "lsi"
+  scsi_controller = "virtio-scsi-pci"
   disks {
-    disk_size    = "20G"
+    disk_size    = "30G"
     format       = "raw"
     storage_pool = "local"
     type         = "virtio"
@@ -84,7 +85,7 @@ source "proxmox-iso" "tpl-ubuntu-2204" {
 build {
   sources = ["proxmox-iso.tpl-ubuntu-2204"]
   provisioner "shell" {
-    script       = "provisionners/postinstall.sh"
+    script       = "provisionners/postinstall-ubuntu.sh"
     pause_before = "10s"
     timeout      = "10s"
   }

@@ -31,7 +31,7 @@ autoinstall:
         dhcp4: true
     version: 2
   source:
-    id: ubuntu-server-minimal
+    id: ubuntu-server
     search_drivers: false
   ssh:
     allow-pw: true
@@ -39,7 +39,6 @@ autoinstall:
     install-server: true
   packages:
     - qemu-guest-agent
-    - cloud-init
     - vim
     - rsyslog
     - iproute2
@@ -51,6 +50,7 @@ autoinstall:
     - iputils-ping
   package_update: true
   package_upgrade: true
+  updates: all
   storage:
     swap:
       size: 4G
@@ -61,24 +61,19 @@ autoinstall:
       wipe: superblock-recursive
       preserve: false
       name: ''
-      grub_device: false
+      grub_device: true
       type: disk
       id: disk0
 
     - device: disk0
-      size: 512M
+      size: 32M
       wipe: superblock
-      flag: boot
       number: 1
+      flag: bios_grub
       preserve: false
-      grub_device: true
+      grub_device: false
       type: partition
-      id: partition-boot-efi
-    - fstype: fat32
-      volume: partition-boot-efi
-      preserve: false
-      type: format
-      id: format-boot-efi
+      id: partition-biosboot
 
     - device: disk0
       size: 1G
@@ -133,12 +128,6 @@ autoinstall:
       type: mount
       id: mount-boot
 
-    - path: /boot/efi
-      device: format-boot-efi
-      type: mount
-      id: mount-boot-efi
-
-  updates: all
   late-commands:
     - "echo 'Defaults:julien !requiretty' > /target/etc/sudoers.d/julien"
     - "echo 'julien ALL=(ALL) NOPASSWD: ALL' >> /target/etc/sudoers.d/julien"
