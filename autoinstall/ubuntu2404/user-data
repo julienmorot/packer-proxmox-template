@@ -1,0 +1,134 @@
+#cloud-config
+autoinstall:
+  version: 1
+  apt:
+    disable_components: []
+    fallback: abort
+    geoip: false
+    preserve_sources_list: false
+    primary:
+      - arches: [default]
+        uri: http://archive.ubuntu.com/ubuntu/
+  codecs:
+    install: false
+  drivers:
+    install: false
+  identity:
+    hostname: linux
+    password: $y$j9T$/iNLfLo5yqY4CR6tpl/3c.$3t2JcpDhEi80B8ZFAxWl/guI8pzpnD0alCYUd.PquRD
+    realname: julien
+    username: julien
+  kernel:
+    package: linux-generic
+  keyboard:
+    layout: fr
+    toggle: null
+    variant: ''
+  locale: en_US.UTF-8
+  network:
+    ethernets:
+      ens18:
+        dhcp4: true
+    version: 2
+  source:
+    id: ubuntu-server
+    search_drivers: false
+  ssh:
+    allow-pw: true
+    authorized-keys: []
+    install-server: true
+  packages:
+    - qemu-guest-agent
+    - vim
+    - rsyslog
+    - iproute2
+    - net-tools
+    - traceroute
+    - curl
+    - screen
+    - less
+    - iputils-ping
+  package_update: true
+  package_upgrade: true
+  updates: all
+  storage:
+    swap:
+      size: 4G
+
+    config:
+    - ptable: gpt
+      path: /dev/vda
+      wipe: superblock-recursive
+      preserve: false
+      name: ''
+      grub_device: true
+      type: disk
+      id: disk0
+
+    - device: disk0
+      size: 32M
+      wipe: superblock
+      number: 1
+      flag: bios_grub
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-biosboot
+
+    - device: disk0
+      size: 1G
+      wipe: superblock
+      number: 2
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-boot
+    - fstype: xfs
+      volume: partition-boot
+      preserve: false
+      type: format
+      id: format-boot
+
+    - device: disk0
+      size: -1
+      wipe: superblock
+      number: 3
+      preserve: false
+      grub_device: false
+      type: partition
+      id: partition-lvm
+
+    - name: vg_sys
+      devices:
+      - partition-lvm
+      preserve: false
+      type: lvm_volgroup
+      id: vg_sys
+
+    - name: lv_root
+      volgroup: vg_sys
+      size: 10G
+      wipe: superblock
+      preserve: false
+      path: /dev/vg_sys/lv_root
+      type: lvm_partition
+      id: lv_root
+    - fstype: xfs
+      volume: lv_root
+      preserve: false
+      type: format
+      id: format-root
+    - path: /
+      device: format-root
+      type: mount
+      id: mount-root
+      
+    - path: /boot
+      device: format-boot
+      type: mount
+      id: mount-boot
+
+  late-commands:
+    - "echo 'Defaults:julien !requiretty' > /target/etc/sudoers.d/julien"
+    - "echo 'julien ALL=(ALL) NOPASSWD: ALL' >> /target/etc/sudoers.d/julien"
+    - "chmod 440 /target/etc/sudoers.d/julien"
